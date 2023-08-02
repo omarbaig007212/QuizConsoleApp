@@ -1,9 +1,14 @@
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import java.util.Random;
 
-public class QuestionService {
-	
+public class QuestionService extends Exception {
+
+	public static Scanner sc = new Scanner(System.in);
+
 	// Constants (Questions, Options, Answers)
 	private static String Questions[] = { "Number of primitive data types in Java are?",
 			"What is the size of float and double in java?",
@@ -13,10 +18,21 @@ public class QuestionService {
 	private static String Options[][] = { { "6", "5", "8", "9" },
 			{ "32 and 64", "32 and 32", "64 and 64", "64 and 32" },
 			{ "Byte to int", "int to long", "Long to int", "Short to int" },
-			{ "char []ch=new char[5]", "char []ch=new char(5)", "char []ch=new char()", "char []ch=new char[]" }, 
-			{"JRE", "JIT","JDK","JVM"}};
+			{ "char []ch=new char[5]", "char []ch=new char(5)", "char []ch=new char()", "char []ch=new char[]" },
+			{ "JRE", "JIT", "JDK", "JVM" } };
 	private static int Answers[] = { 3, 3, 2, 2, 3 };
-	
+	public static boolean timeOver;
+
+	public static void startTimer(Timer timer) {
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				System.out.println("\nTime Over!, to continue type yes.");
+				timeOver = true;
+			}
+		}, 5000);
+	}
+
 	// Array of Question class object.
 	private static Question[] questions;
 
@@ -57,7 +73,7 @@ public class QuestionService {
 
 	public static void admin(int numberOfQuestions) {
 		questions = new Question[numberOfQuestions];
-		Scanner sc = new Scanner(System.in);
+//		Scanner sc = new Scanner(System.in);
 		for (int i = 0; i < questions.length; i++) {
 			System.out.println("-------------------- Question" + (i + 1) + " --------------------");
 			System.out.println("Enter your question? ");
@@ -77,14 +93,14 @@ public class QuestionService {
 		}
 	}
 
-	public static void play() {
+	public static void play() throws InterruptedException {
 		Player player = new Player();
 		int rightAnswer = 0;
 		int wrongAnswer = 0;
-		Scanner sc = new Scanner(System.in);
 		System.out.println("--------------------------WELCOME--------------------------");
 		System.out.println("Your Current Score is : " + player.getScore());
 		for (int i = 0; i < questions.length; i++) {
+			Timer timer = new Timer();
 			System.out.println("-------------------- Question" + (i + 1) + " --------------------");
 			System.out.println(questions[i].getQuestion());
 			System.out.print("-------------------- Options --------------------\n");
@@ -97,17 +113,34 @@ public class QuestionService {
 			while (!(skip == 'N' || skip == 'n' || skip == 'y' || skip == 'Y')) {
 				skip = sc.next().charAt(0);
 			}
+			int currAnswer = 0;
 			if (skip == 'N' || skip == 'n') {
-				System.out.println("Enter your option (1 - " + currOptions.length + " )");
-				int currAnswer = sc.nextInt();
-				boolean isMatch = currAnswer == questions[i].getAnswer();
-				if (isMatch) {
-					System.out.println("Correct Answer! ");
-					rightAnswer++;
-				} else {
-					System.out.println(
-							"Wrong Answer! , the correct answer is: " + currOptions[questions[i].getAnswer() - 1]);
-					wrongAnswer--;
+				try {
+					timeOver = false;
+					startTimer(timer);
+					System.out.println("Enter your option (1 - " + currOptions.length + " )");
+					System.out.print("\r");
+					currAnswer = sc.nextInt();
+					boolean isMatch = currAnswer == questions[i].getAnswer();
+					if (isMatch) {
+						System.out.println("Correct Answer! ");
+						rightAnswer++;
+					} else {
+						System.out.println(
+								"Wrong Answer! , the correct answer is: " + currOptions[questions[i].getAnswer() - 1]);
+						wrongAnswer--;
+					}
+					timer.cancel();
+				} catch (Exception e) {
+					if (timeOver) {
+						timer.cancel();
+						if (timeOver) {
+							System.out.println("The correct answer is: " + currOptions[questions[i].getAnswer() - 1]);
+							sc = new Scanner(System.in);
+						}
+					} else {
+						System.out.println(e.getMessage());
+					}
 				}
 			}
 			System.out.println("Your Current Score is : " + (rightAnswer + wrongAnswer));

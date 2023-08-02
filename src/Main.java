@@ -25,7 +25,8 @@ public class Main {
 			if (option == 1) {
 				service.admin(5);
 			} else if (option == 2) {
-				service.play();
+				try {service.play();}
+				catch(Exception e) {}
 			}
 
 			System.out.println("------------------------------------------");
